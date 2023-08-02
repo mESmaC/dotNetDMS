@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Aspose.Pdf.Devices;
-using Aspose.Words;
-using Aspose.Words.Rendering;
-using Aspose.Words.Saving;
 using Spire.Xls;
-using System.Drawing.Imaging;
+using Spire.Pdf;
+using Spire.Doc;
 
 namespace dotNetDMS
 {
@@ -42,7 +40,8 @@ namespace dotNetDMS
 
         private void PopulateListView()
         {
-            this.Invoke((MethodInvoker)delegate {
+            this.Invoke((MethodInvoker)delegate
+            {
                 string documentDirectory = @"Data\Documents";
                 string thumbnailDirectory = @"Data\Thumbnails";
 
@@ -53,63 +52,75 @@ namespace dotNetDMS
 
                 void HandleDocx(string documentFile)
                 {
-                    // Load Document
-                    var document = new Aspose.Words.Document(documentFile);
-                    // Thumbnail options
-                    var options = new Aspose.Words.Saving.ImageSaveOptions(Aspose.Words.SaveFormat.Png)
-                    {
-                        // We want the size of the rendered page to be the same as the size of the page in points.
-                        // To achieve this we need to specify a resolution of 72 DPI.
-                        Resolution = 72
-                    };
+                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb.png");
 
-                    // Let's say we want the thumbnails to be generated in color rather than as grayscale images.
-                    options.ImageColorMode = Aspose.Words.Saving.ImageColorMode.None;
+                    // Load Word document
+                    Spire.Doc.Document document = new Spire.Doc.Document();
+                    document.LoadFromFile(documentFile);
 
-                    // Create a thumbnail per page.
-                    for (int i = 0; i < document.PageCount; i++)
-                    {
-                        options.PageSet = new Aspose.Words.Saving.PageSet(i);
-                        string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb_{i + 1}.png");
-                        document.Save(thumbnailPath, options);
-                    }
+                    // Save the first page of the Word document as a thumbnail image
+                    Image image = document.SaveToImages(0, Spire.Doc.Documents.ImageType.Bitmap);
+
+                    // Save the image as a PNG file
+                    image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+
+                    // Load the thumbnail into the ImageList and ListView
+                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb");
                 }
 
                 void HandlePdf(string documentFile)
                 {
-                    // Handle PDFs
-                    Aspose.Pdf.Document pdf = new Aspose.Pdf.Document(documentFile);
+                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb.png");
 
-                    for (int pageCount = 1; pageCount <= pdf.Pages.Count; pageCount++)
-                    {
-                        using (FileStream imageStream = new FileStream(thumbnailDirectory + "\\" + Path.GetFileNameWithoutExtension(documentFile) + "_page_" + pageCount + ".png", FileMode.Create))
-                        {
-                            // Create Resolution object
-                            Resolution resolution = new Resolution(300);
-                            // Create JPEG device with specified attributes (Width, Height, Resolution, Quality)
-                            // where Quality [0-100], 100 is Maximum quality
-                            JpegDevice jpegDevice = new JpegDevice(500, 700, resolution, 100);
-                            // Convert a particular page and save the image to stream
-                            jpegDevice.Process(pdf.Pages[pageCount], imageStream);
-                            // Close stream
-                            imageStream.Close();
-                        }
-                    }
+                    // Load PDF document
+                    Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument();
+                    pdf.LoadFromFile(documentFile);
+
+                    // Save the first page of the PDF as a thumbnail image
+                    Image image = pdf.SaveAsImage(0);
+
+                    // Save the image as a PNG file
+                    image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+
+                    // Load the thumbnail into the ImageList and ListView
+                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb");
                 }
 
                 void HandleXlsx(string documentFile)
                 {
-                    // Handle Excel spreadsheets
+                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb.png");
+
+                    // Load Excel workbook
                     Spire.Xls.Workbook workbook = new Spire.Xls.Workbook();
                     workbook.LoadFromFile(documentFile);
 
-                    // Convert the first worksheet into an image
+                    // Get the first worksheet
                     Spire.Xls.Worksheet sheet = workbook.Worksheets[0];
-                    Image image = sheet.ToImage(1, 1, sheet.LastRow, sheet.LastColumn);
 
-                    // Save the image in the thumbnail directory
-                    string thumbnailFile = Path.Combine(thumbnailDirectory, Path.GetFileNameWithoutExtension(documentFile) + ".png");
-                    image.Save(thumbnailFile, ImageFormat.Png);
+                    // Identify the range of the worksheet
+                    int firstRow = 1;
+                    int firstColumn = 1;
+                    int lastRow = sheet.LastRow;
+                    int lastColumn = sheet.LastColumn;
+
+                    // Save the worksheet as an image
+                    Image image = sheet.ToImage(firstRow, firstColumn, lastRow, lastColumn);
+
+                    // Save the image as a PNG file
+                    image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+
+                    // Load the thumbnail into the ImageList and ListView
+                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb");
+                }
+
+                void AddToImageListAndListView(string imagePath, string imageName)
+                {
+                    // Load the image into the ImageList
+                    this.previewList.Images.Add(Image.FromFile(imagePath), Color.Transparent);
+
+                    // Create a ListViewItem and add it to the ListView
+                    ListViewItem item = new ListViewItem(imageName, this.previewList.Images.Count - 1);
+                    docuView.Items.Add(item);
                 }
 
                 // For each document...
@@ -117,7 +128,7 @@ namespace dotNetDMS
                 {
                     string extension = Path.GetExtension(documentFile).ToLower();
 
-                    switch (Path.GetExtension(documentFile))
+                    switch (extension)
                     {
                         case ".docx":
                             HandleDocx(documentFile);
@@ -129,10 +140,9 @@ namespace dotNetDMS
                             HandleXlsx(documentFile);
                             break;
                         default:
-                            Console.WriteLine($"Document type {Path.GetExtension(documentFile)} not supported.");
+                            Console.WriteLine($"Document type {extension} not supported.");
                             break;
                     }
-
                 }
 
                 Console.WriteLine("Added {0} items to the ListView.", docuView.Items.Count);
