@@ -60,6 +60,7 @@
             this.Password.Size = new System.Drawing.Size(229, 26);
             this.Password.TabIndex = 1;
             this.Password.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.Password.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Password_KeyUp);
             // 
             // user
             // 
