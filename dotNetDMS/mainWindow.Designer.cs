@@ -40,18 +40,19 @@
             // previewList
             // 
             this.previewList.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
-            this.previewList.ImageSize = new System.Drawing.Size(32, 32);
+            this.previewList.ImageSize = new System.Drawing.Size(128, 128);
             this.previewList.TransparentColor = System.Drawing.Color.Transparent;
             // 
             // docuView
             // 
+            this.docuView.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.docuView.HideSelection = false;
+            this.docuView.LargeImageList = this.previewList;
             this.docuView.Location = new System.Drawing.Point(12, 36);
             this.docuView.Name = "docuView";
             this.docuView.Size = new System.Drawing.Size(759, 904);
             this.docuView.TabIndex = 0;
             this.docuView.UseCompatibleStateImageBehavior = false;
-            this.docuView.View = System.Windows.Forms.View.Details;
             // 
             // menuBar
             // 
@@ -61,14 +62,14 @@
             this.testToolStripMenuItem});
             this.menuBar.Location = new System.Drawing.Point(0, 0);
             this.menuBar.Name = "menuBar";
-            this.menuBar.Size = new System.Drawing.Size(1578, 33);
+            this.menuBar.Size = new System.Drawing.Size(1578, 36);
             this.menuBar.TabIndex = 1;
             this.menuBar.Text = "menuStrip1";
             // 
             // testToolStripMenuItem
             // 
             this.testToolStripMenuItem.Name = "testToolStripMenuItem";
-            this.testToolStripMenuItem.Size = new System.Drawing.Size(58, 29);
+            this.testToolStripMenuItem.Size = new System.Drawing.Size(58, 32);
             this.testToolStripMenuItem.Text = "Test";
             // 
             // mainWindow
