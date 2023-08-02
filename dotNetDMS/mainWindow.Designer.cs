@@ -45,7 +45,7 @@
             // 
             // docuView
             // 
-            this.docuView.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.docuView.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.docuView.HideSelection = false;
             this.docuView.LargeImageList = this.previewList;
             this.docuView.Location = new System.Drawing.Point(12, 36);

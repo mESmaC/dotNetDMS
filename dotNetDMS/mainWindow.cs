@@ -52,7 +52,7 @@ namespace dotNetDMS
 
                 void HandleDocx(string documentFile)
                 {
-                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb.png");
+                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
 
                     // Load Word document
                     Spire.Doc.Document document = new Spire.Doc.Document();
@@ -65,12 +65,12 @@ namespace dotNetDMS
                     image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
                     // Load the thumbnail into the ImageList and ListView
-                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb");
+                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                 }
 
                 void HandlePdf(string documentFile)
                 {
-                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb.png");
+                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
 
                     // Load PDF document
                     Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument();
@@ -83,12 +83,12 @@ namespace dotNetDMS
                     image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
                     // Load the thumbnail into the ImageList and ListView
-                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb");
+                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                 }
 
                 void HandleXlsx(string documentFile)
                 {
-                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb.png");
+                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
 
                     // Load Excel workbook
                     Spire.Xls.Workbook workbook = new Spire.Xls.Workbook();
@@ -110,7 +110,40 @@ namespace dotNetDMS
                     image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
                     // Load the thumbnail into the ImageList and ListView
-                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}_thumb");
+                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
+                }
+
+                void HandleTxt(string documentFile)
+                {
+                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
+
+                    using (var bitmap = new Bitmap(500, 500))
+                    {
+                        // Read the text from the text file
+                        string text = File.ReadAllText(documentFile);
+
+                        // Create a graphics object from the bitmap
+                        using (var graphics = Graphics.FromImage(bitmap))
+                        {
+                            // Set the text formatting
+                            var format = new StringFormat()
+                            {
+                                Alignment = StringAlignment.Near,
+                                LineAlignment = StringAlignment.Near,
+                                Trimming = StringTrimming.EllipsisCharacter,
+                                FormatFlags = StringFormatFlags.LineLimit
+                            };
+
+                            // Draw the text onto the bitmap
+                            graphics.DrawString(text, new Font("Courier New", 10), Brushes.Black, new RectangleF(0, 0, bitmap.Width, bitmap.Height), format);
+
+                            // Save the bitmap as a PNG file
+                            bitmap.Save(thumbnailPath, ImageFormat.Png);
+                        }
+                    }
+
+                    // Load the thumbnail into the ImageList and ListView
+                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                 }
 
                 void AddToImageListAndListView(string imagePath, string imageName)
@@ -138,6 +171,9 @@ namespace dotNetDMS
                             break;
                         case ".xlsx":
                             HandleXlsx(documentFile);
+                            break;
+                        case ".txt":
+                            HandleTxt(documentFile);
                             break;
                         default:
                             Console.WriteLine($"Document type {extension} not supported.");
