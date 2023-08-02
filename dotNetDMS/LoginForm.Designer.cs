@@ -54,7 +54,7 @@
             this.Password.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.Password.Location = new System.Drawing.Point(16, 91);
+            this.Password.Location = new System.Drawing.Point(16, 92);
             this.Password.Name = "Password";
             this.Password.PasswordChar = '*';
             this.Password.Size = new System.Drawing.Size(229, 26);
@@ -79,7 +79,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pass.AutoSize = true;
-            this.pass.Location = new System.Drawing.Point(12, 68);
+            this.pass.Location = new System.Drawing.Point(12, 69);
             this.pass.Name = "pass";
             this.pass.Size = new System.Drawing.Size(82, 20);
             this.pass.TabIndex = 3;
@@ -96,6 +96,7 @@
             this.login.TabIndex = 4;
             this.login.Text = "Login";
             this.login.UseVisualStyleBackColor = true;
+            this.login.Click += new System.EventHandler(this.login_Click);
             // 
             // loginBox
             // 
