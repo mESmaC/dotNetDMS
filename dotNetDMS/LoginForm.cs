@@ -48,6 +48,8 @@ namespace dotNetDMS
                 {
                     MessageBox.Show("Login successful!");
                     // Redirect to the next form or do something else
+                    this.DialogResult = DialogResult.OK;
+                    this.Close();
                 }
                 else
                 {

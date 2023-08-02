@@ -19,7 +19,14 @@ namespace dotNetDMS
 
         private void mainWindow_Load(object sender, EventArgs e)
         {
-
+            using (LoginForm loginForm = new LoginForm())
+            {
+                if (loginForm.ShowDialog() != DialogResult.OK)
+                {
+                    // If the login is not successful, close the main form.
+                    this.Close();
+                }
+            }
         }
     }
 }
