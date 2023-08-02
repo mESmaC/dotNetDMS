@@ -38,6 +38,7 @@
             this.ClientSize = new System.Drawing.Size(1578, 844);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "mainWindow";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "dotNetDMS";
             this.Load += new System.EventHandler(this.mainWindow_Load);
             this.ResumeLayout(false);
