@@ -51,6 +51,7 @@
             this.docuView.Size = new System.Drawing.Size(759, 904);
             this.docuView.TabIndex = 0;
             this.docuView.UseCompatibleStateImageBehavior = false;
+            this.docuView.View = System.Windows.Forms.View.Details;
             // 
             // menuBar
             // 

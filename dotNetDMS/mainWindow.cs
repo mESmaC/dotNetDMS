@@ -39,41 +39,33 @@ namespace dotNetDMS
 
         private void PopulateListView()
         {
-            // Assuming previewList and docuView are already declared and accessible
-            previewList.ImageSize = new Size(32, 32); // set the size of the icons here
+            this.Invoke((MethodInvoker)delegate {
+                string documentDirectory = @"Data\Documents";
+                string thumbnailDirectory = @"Data\Thumbnails";
 
-            docuView.View = View.Details;
-            docuView.SmallImageList = previewList;
+                string[] documentFiles = Directory.GetFiles(documentDirectory, "*.docx");
 
-            // Specify the directory containing the documents
-            string documentDirectory = "Data/Documents";
+                // For each document...
+                foreach (string documentFile in documentFiles)
+                {
+                    // Generate a thumbnail
+                    Aspose.Words.Document doc = new Aspose.Words.Document(documentFile);
+                    Aspose.Words.Saving.ImageSaveOptions options = new Aspose.Words.Saving.ImageSaveOptions(Aspose.Words.SaveFormat.Png);
+                    options.PageSet = new PageSet(0, 0); // Only render the first page
 
-            // Specify the directory where the thumbnails will be saved
-            string thumbnailDirectory = "Data/Thumbnails";
+                    // Save the thumbnail in the thumbnail directory
+                    string thumbnailFile = Path.Combine(thumbnailDirectory, Path.GetFileNameWithoutExtension(documentFile) + ".png");
+                    doc.Save(thumbnailFile, options);
 
-            // Get all .docx files in the document directory
-            string[] documentFiles = Directory.GetFiles(documentDirectory, "*.docx");
+                    // Add the thumbnail to the ImageList
+                    previewList.Images.Add(Image.FromFile(thumbnailFile));
 
-            // For each document...
-            foreach (string documentFile in documentFiles)
-            {
-                // Generate a thumbnail
-                Aspose.Words.Document doc = new Aspose.Words.Document(documentFile);
-                Aspose.Words.Saving.ImageSaveOptions options = new Aspose.Words.Saving.ImageSaveOptions(Aspose.Words.SaveFormat.Png);
-                options.PageSet = new PageSet(0, 0); // Only render the first page
-
-                // Save the thumbnail in the thumbnail directory
-                string thumbnailFile = Path.Combine(thumbnailDirectory, Path.GetFileNameWithoutExtension(documentFile) + ".png");
-                doc.Save(thumbnailFile, options);
-
-                // Add the thumbnail to the ImageList
-                previewList.Images.Add(Image.FromFile(thumbnailFile));
-
-                // Create a ListViewItem and add it to the ListView
-                ListViewItem listViewItem = new ListViewItem(Path.GetFileName(documentFile));
-                listViewItem.ImageIndex = previewList.Images.Count - 1; // Set this to the index of the image in the ImageList
-                docuView.Items.Add(listViewItem);
-            }
+                    // Create a ListViewItem and add it to the ListView
+                    ListViewItem listViewItem = new ListViewItem(Path.GetFileName(documentFile));
+                    listViewItem.ImageIndex = previewList.Images.Count - 1; // Set this to the index of the image in the ImageList
+                    docuView.Items.Add(listViewItem);
+                }
+            });
         }
     }
 }
