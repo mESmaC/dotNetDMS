@@ -17,9 +17,13 @@ namespace dotNetDMS
 {
     public partial class mainWindow : Form
     {
+
+        public string documentDirectory = @"Data\Documents";
+        public string thumbnailDirectory = @"Data\Thumbnails";
         public mainWindow()
         {
             InitializeComponent();
+            this.FormClosing += MainForm_FormClosing;
         }
 
         private void mainWindow_Load(object sender, EventArgs e)
@@ -38,12 +42,22 @@ namespace dotNetDMS
 
         }
 
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            DirectoryInfo di = new DirectoryInfo(thumbnailDirectory);
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
+            }
+        }
+
         private void PopulateListView()
         {
             this.Invoke((MethodInvoker)delegate
             {
-                string documentDirectory = @"Data\Documents";
-                string thumbnailDirectory = @"Data\Thumbnails";
+                //string documentDirectory = @"Data\Documents";
+                //string thumbnailDirectory = @"Data\Thumbnails";
 
                 // Get all document files
                 string[] documentFiles = Directory.GetFiles(documentDirectory);
