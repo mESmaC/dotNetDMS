@@ -83,7 +83,7 @@ namespace dotNetDMS
                 // Get all document files
                 string[] documentFiles = Directory.GetFiles(documentDirectory);
 
-                Console.WriteLine("PopulateListView called. Found {0} documents.", documentFiles.Length);
+                statusOut.Text = "Status: PopulateListView called. Found" + documentFiles.Length + "documents.";
 
                 void HandleDocx(string documentFile)
                 {
@@ -211,12 +211,12 @@ namespace dotNetDMS
                             HandleTxt(documentFile);
                             break;
                         default:
-                            Console.WriteLine($"Document type {extension} not supported.");
+                            //MessageBox.Show($"Document type {extension} not supported.");
                             break;
                     }
                 }
 
-                Console.WriteLine("Added {0} items to the ListView.", docuView.Items.Count);
+                statusOut.Text = "Status: Added " + docuView.Items.Count + " items to the Document Container.";
             });
         }
     }

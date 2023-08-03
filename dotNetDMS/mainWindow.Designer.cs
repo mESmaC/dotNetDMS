@@ -34,7 +34,10 @@
             this.docuView = new System.Windows.Forms.ListView();
             this.menuBar = new System.Windows.Forms.MenuStrip();
             this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.statusOut = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuBar.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // previewList
@@ -62,21 +65,39 @@
             this.testToolStripMenuItem});
             this.menuBar.Location = new System.Drawing.Point(0, 0);
             this.menuBar.Name = "menuBar";
-            this.menuBar.Size = new System.Drawing.Size(1578, 36);
+            this.menuBar.Size = new System.Drawing.Size(1578, 33);
             this.menuBar.TabIndex = 1;
             this.menuBar.Text = "menuStrip1";
             // 
             // testToolStripMenuItem
             // 
             this.testToolStripMenuItem.Name = "testToolStripMenuItem";
-            this.testToolStripMenuItem.Size = new System.Drawing.Size(58, 32);
+            this.testToolStripMenuItem.Size = new System.Drawing.Size(58, 29);
             this.testToolStripMenuItem.Text = "Test";
+            // 
+            // statusStrip1
+            // 
+            this.statusStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.statusOut});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 1012);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(1578, 32);
+            this.statusStrip1.TabIndex = 0;
+            this.statusStrip1.Text = "statusStrip1";
+            // 
+            // statusOut
+            // 
+            this.statusOut.Name = "statusOut";
+            this.statusOut.Size = new System.Drawing.Size(179, 25);
+            this.statusOut.Text = "toolStripStatusLabel1";
             // 
             // mainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1578, 1044);
+            this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.docuView);
             this.Controls.Add(this.menuBar);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -87,6 +108,8 @@
             this.Load += new System.EventHandler(this.mainWindow_Load);
             this.menuBar.ResumeLayout(false);
             this.menuBar.PerformLayout();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -98,6 +121,8 @@
         private System.Windows.Forms.ListView docuView;
         private System.Windows.Forms.MenuStrip menuBar;
         private System.Windows.Forms.ToolStripMenuItem testToolStripMenuItem;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel statusOut;
     }
 }
 
