@@ -15,7 +15,7 @@ using Spire.Doc;
 using Spire.Xls.Charts;
 using System.Threading;
 using dotNetDMS.Class;
-using OfficeOpenXml.Drawing;
+using OfficeOpenXml.Drawing.Chart;
 
 namespace dotNetDMS
 {
@@ -213,9 +213,12 @@ namespace dotNetDMS
                     }
                 }
 
-                Image GetChartImage(OfficeOpenXml.Drawing.Chart.ExcelChart chart)
+                Image GetChartImage(ExcelChart chart)
                 {
-                    var imagePart = chart.Chart.Drawings.FirstOrDefault()?.ImagePart;
+                    var worksheet = chart.Worksheet;
+                    var drawings = worksheet.Drawings;
+
+                    var imagePart = drawings.FirstOrDefault()?.ImagePart;
 
                     if (imagePart != null)
                     {
