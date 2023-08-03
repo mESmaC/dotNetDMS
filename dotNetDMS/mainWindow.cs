@@ -48,7 +48,7 @@ namespace dotNetDMS
         {
             DirectoryInfo di = new DirectoryInfo(thumbnailDirectory);
 
-            var timedMessagebox = new TimedMessageBox("Exiting", "Program is closing, please wait for temporary files to be removed.", 2500); // 5 seconds
+            var timedMessagebox = new TimedMessageBox("Exiting", "Program is closing, please wait for temporary files to be removed.", 3000); // 5 seconds
             timedMessagebox.ShowDialog();
 
             foreach (FileInfo file in di.GetFiles())
