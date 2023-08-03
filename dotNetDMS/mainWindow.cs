@@ -48,11 +48,12 @@ namespace dotNetDMS
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+
             DirectoryInfo di = new DirectoryInfo(thumbnailDirectory);
 
-            var timedMessagebox = new TimedMessageBox("Exiting", "Program is closing, please wait for temporary files to be removed.", 3000); // 5 seconds
-            timedMessagebox.ShowDialog();
-
+            //var timedMessagebox = new TimedMessageBox("Exiting", "Program is closing, please wait for temporary files to be removed.", 3000); // 5 seconds
+            //timedMessagebox.ShowDialog();
+            /*
             foreach (FileInfo file in di.GetFiles())
             {
                 bool deleted = false;
@@ -73,6 +74,7 @@ namespace dotNetDMS
                         Thread.Sleep(100);
                 }
             }
+            */
         }
 
         private Image CreateTextThumbnail(string text, Font font, Color textColor, Color backgroundColor, int width, int height)
@@ -118,7 +120,7 @@ namespace dotNetDMS
                 using (MemoryStream ms = new MemoryStream())
                 {
                     System.Drawing.Imaging.EncoderParameters encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
-                    encoderParams.Param[0] = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 50L); // Adjust the quality value as needed
+                    encoderParams.Param[0] = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 100L); // Adjust the quality value as needed
 
                     ImageCodecInfo jpegCodec = GetEncoderInfo(ImageFormat.Jpeg);
 
@@ -155,9 +157,9 @@ namespace dotNetDMS
                 {
                     Image compressedImage = Image.FromStream(ms);
 
-                    compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+                    //compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
-                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
+                    AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                 }
             }
 
@@ -175,12 +177,12 @@ namespace dotNetDMS
                 {
                     Image compressedImage = Image.FromStream(ms);
 
-                    compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+                    //compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
-                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
+                    AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                 }
             }
-
+                /*
                 void HandleXlsx(string documentFile)
                 {
                     string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
@@ -212,7 +214,7 @@ namespace dotNetDMS
                         }
                     }
                 }
-
+                
                 Image GetChartImage(ExcelChart chart)
                 {
                     var worksheet = chart.Worksheet;
@@ -234,25 +236,27 @@ namespace dotNetDMS
                         // Handle case when image part is not found
                         return null;
                     }
-                }
+                }*/
 
                 void HandleTxt(string documentFile)
-            {
-                string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
-
-                Font font = new Font("Arial", 12);
-
-                Image image = CreateTextThumbnail(documentFile, font, Color.Black, Color.White, 200, 200);
-
-                byte[] compressedImageBytes = CompressImage(image);
-
-                using (MemoryStream ms = new MemoryStream(compressedImageBytes))
                 {
+                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
+
+                    Font font = new Font("Arial", 12);
+
+                    string text = File.ReadAllText(documentFile);
+
+                    Image image = CreateTextThumbnail(text, font, Color.Black, Color.White, 200, 200);
+
+                    byte[] compressedImageBytes = CompressImage(image);
+
+                    using (MemoryStream ms = new MemoryStream(compressedImageBytes))
+                    {
                         Image compressedImage = Image.FromStream(ms);
 
-                        compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+                        //compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
-                        AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
+                        AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                     }
                 }
 
@@ -267,9 +271,9 @@ namespace dotNetDMS
                     {
                         Image compressedImage = Image.FromStream(ms);
 
-                        compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+                        //compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
-                        AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
+                        AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                     }
                 }
 
@@ -285,9 +289,9 @@ namespace dotNetDMS
                         case ".pdf":
                             HandlePdf(documentFile);
                             break;
-                        case ".xlsx":
-                            HandleXlsx(documentFile);
-                            break;
+                        //case ".xlsx":
+                        //    HandleXlsx(documentFile);
+                        //    break;
                         case ".txt":
                             HandleTxt(documentFile);
                             break;
@@ -305,9 +309,9 @@ namespace dotNetDMS
             });
         }
 
-        void AddToImageListAndListView(string imagePath, string imageName)
+        void AddToImageListAndListView(Image image, string imageName)
         {
-            this.previewList.Images.Add(Image.FromFile(imagePath), Color.Transparent);
+            this.previewList.Images.Add(image, Color.Transparent);
 
             ListViewItem item = new ListViewItem(imageName, this.previewList.Images.Count - 1);
             docuView.Items.Add(item);
