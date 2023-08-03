@@ -12,6 +12,8 @@ using System.Windows.Forms;
 using Spire.Xls;
 using Spire.Pdf;
 using Spire.Doc;
+using System.Threading;
+using dotNetDMS.Class;
 
 namespace dotNetDMS
 {
@@ -46,9 +48,28 @@ namespace dotNetDMS
         {
             DirectoryInfo di = new DirectoryInfo(thumbnailDirectory);
 
+            var timedMessagebox = new TimedMessageBox("Exiting", "Program is closing, please wait for temporary files to be removed.", 2500); // 5 seconds
+            timedMessagebox.ShowDialog();
+
             foreach (FileInfo file in di.GetFiles())
             {
-                file.Delete();
+                bool deleted = false;
+                for (int i = 0; i < 10; i++)
+                {
+                    try
+                    {
+                        File.Delete(file.FullName);
+                        deleted = true;
+                        break; // break the loop if file deleted
+                    }
+                    catch (IOException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    // if file was not deleted wait for 100 ms before retrying
+                    if (!deleted)
+                        Thread.Sleep(100);
+                }
             }
         }
 
