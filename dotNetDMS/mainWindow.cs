@@ -12,8 +12,10 @@ using System.Windows.Forms;
 using Spire.Xls;
 using Spire.Pdf;
 using Spire.Doc;
+using Spire.Xls.Charts;
 using System.Threading;
 using dotNetDMS.Class;
+using OfficeOpenXml.Drawing;
 
 namespace dotNetDMS
 {
@@ -73,125 +75,201 @@ namespace dotNetDMS
             }
         }
 
+        private Image CreateTextThumbnail(string text, Font font, Color textColor, Color backgroundColor, int width, int height)
+        {
+            // Create a bitmap with the specified width and height
+            Bitmap bitmap = new Bitmap(width, height);
+
+            // Create a graphics object from the bitmap
+            using (Graphics graphics = Graphics.FromImage(bitmap))
+            {
+                // Set the background color
+                graphics.Clear(backgroundColor);
+
+                // Create a brush with the specified text color
+                using (Brush brush = new SolidBrush(textColor))
+                {
+                    // Create a rectangle to fit the text within the bitmap
+                    RectangleF rectangle = new RectangleF(0, 0, width, height);
+
+                    // Create a StringFormat object for center alignment
+                    StringFormat stringFormat = new StringFormat();
+                    stringFormat.Alignment = StringAlignment.Center;
+                    stringFormat.LineAlignment = StringAlignment.Center;
+
+                    // Draw the text on the bitmap
+                    graphics.DrawString(text, font, brush, rectangle, stringFormat);
+                }
+            }
+
+            // Return the thumbnail image
+            return bitmap;
+        }
         private void PopulateListView()
         {
             this.Invoke((MethodInvoker)delegate
             {
-                //string documentDirectory = @"Data\Documents";
-                //string thumbnailDirectory = @"Data\Thumbnails";
+            string[] documentFiles = Directory.GetFiles(documentDirectory);
 
-                // Get all document files
-                string[] documentFiles = Directory.GetFiles(documentDirectory);
+            statusOut.Text = "Status: PopulateListView called. Found " + documentFiles.Length + " documents.";
 
-                statusOut.Text = "Status: PopulateListView called. Found" + documentFiles.Length + "documents.";
-
-                void HandleDocx(string documentFile)
+            byte[] CompressImage(Image image)
+            {
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
+                    System.Drawing.Imaging.EncoderParameters encoderParams = new System.Drawing.Imaging.EncoderParameters(1);
+                    encoderParams.Param[0] = new System.Drawing.Imaging.EncoderParameter(System.Drawing.Imaging.Encoder.Quality, 50L); // Adjust the quality value as needed
 
-                    // Load Word document
-                    Spire.Doc.Document document = new Spire.Doc.Document();
-                    document.LoadFromFile(documentFile);
+                    ImageCodecInfo jpegCodec = GetEncoderInfo(ImageFormat.Jpeg);
 
-                    // Save the first page of the Word document as a thumbnail image
-                    Image image = document.SaveToImages(0, Spire.Doc.Documents.ImageType.Bitmap);
+                    image.Save(ms, jpegCodec, encoderParams);
 
-                    // Save the image as a PNG file
-                    image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+                    return ms.ToArray();
+                }
+            }
 
-                    // Load the thumbnail into the ImageList and ListView
+            ImageCodecInfo GetEncoderInfo(ImageFormat format)
+            {
+                ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+                foreach (ImageCodecInfo codec in codecs)
+                {
+                    if (codec.FormatID == format.Guid)
+                    {
+                        return codec;
+                    }
+                }
+                return null;
+            }
+
+            void HandleDocx(string documentFile)
+            {
+                string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
+
+                Spire.Doc.Document document = new Spire.Doc.Document();
+                document.LoadFromFile(documentFile);
+
+                Image image = document.SaveToImages(0, Spire.Doc.Documents.ImageType.Bitmap);
+                byte[] compressedImageBytes = CompressImage(image);
+
+                using (MemoryStream ms = new MemoryStream(compressedImageBytes))
+                {
+                    Image compressedImage = Image.FromStream(ms);
+
+                    compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+
                     AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                 }
+            }
 
-                void HandlePdf(string documentFile)
+            void HandlePdf(string documentFile)
+            {
+                string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
+
+                Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument();
+                pdf.LoadFromFile(documentFile);
+
+                Image image = pdf.SaveAsImage(0);
+                byte[] compressedImageBytes = CompressImage(image);
+
+                using (MemoryStream ms = new MemoryStream(compressedImageBytes))
                 {
-                    string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
+                    Image compressedImage = Image.FromStream(ms);
 
-                    // Load PDF document
-                    Spire.Pdf.PdfDocument pdf = new Spire.Pdf.PdfDocument();
-                    pdf.LoadFromFile(documentFile);
+                    compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
-                    // Save the first page of the PDF as a thumbnail image
-                    Image image = pdf.SaveAsImage(0);
-
-                    // Save the image as a PNG file
-                    image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
-
-                    // Load the thumbnail into the ImageList and ListView
                     AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                 }
+            }
 
                 void HandleXlsx(string documentFile)
                 {
                     string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
 
-                    // Load Excel workbook
-                    Spire.Xls.Workbook workbook = new Spire.Xls.Workbook();
-                    workbook.LoadFromFile(documentFile);
+                    using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(documentFile)))
+                    {
+                        var worksheet = package.Workbook.Worksheets.First(); // Assuming the chart is in the first worksheet
 
-                    // Get the first worksheet
-                    Spire.Xls.Worksheet sheet = workbook.Worksheets[0];
+                        var chart = worksheet.Drawings.OfType<OfficeOpenXml.Drawing.Chart.ExcelChart>().FirstOrDefault();
 
-                    // Identify the range of the worksheet
-                    int firstRow = 1;
-                    int firstColumn = 1;
-                    int lastRow = sheet.LastRow;
-                    int lastColumn = sheet.LastColumn;
+                        if (chart != null)
+                        {
+                            // Retrieve the image from the chart
+                            var image = GetChartImage(chart);
 
-                    // Save the worksheet as an image
-                    Image image = sheet.ToImage(firstRow, firstColumn, lastRow, lastColumn);
+                            if (image != null)
+                            {
+                                image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+                                AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
+                            }
+                            else
+                            {
+                                // Handle case when image is not found
+                            }
+                        }
+                        else
+                        {
+                            // Handle case when chart is not found
+                        }
+                    }
+                }
 
-                    // Save the image as a PNG file
-                    image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+                Image GetChartImage(OfficeOpenXml.Drawing.Chart.ExcelChart chart)
+                {
+                    var imagePart = chart.Chart.Drawings.FirstOrDefault()?.ImagePart;
 
-                    // Load the thumbnail into the ImageList and ListView
-                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
+                    if (imagePart != null)
+                    {
+                        Image image;
+                        using (var stream = imagePart.GetStream())
+                        {
+                            image = Image.FromStream(stream);
+                        }
+                        return image;
+                    }
+                    else
+                    {
+                        // Handle case when image part is not found
+                        return null;
+                    }
                 }
 
                 void HandleTxt(string documentFile)
+            {
+                string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
+
+                Font font = new Font("Arial", 12);
+
+                Image image = CreateTextThumbnail(documentFile, font, Color.Black, Color.White, 200, 200);
+
+                byte[] compressedImageBytes = CompressImage(image);
+
+                using (MemoryStream ms = new MemoryStream(compressedImageBytes))
+                {
+                        Image compressedImage = Image.FromStream(ms);
+
+                        compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+
+                        AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
+                    }
+                }
+
+                void HandleImage(string documentFile)
                 {
                     string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
 
-                    using (var bitmap = new Bitmap(500, 500))
+                    Image image = Image.FromFile(documentFile);
+                    byte[] compressedImageBytes = CompressImage(image);
+
+                    using (MemoryStream ms = new MemoryStream(compressedImageBytes))
                     {
-                        // Read the text from the text file
-                        string text = File.ReadAllText(documentFile);
+                        Image compressedImage = Image.FromStream(ms);
 
-                        // Create a graphics object from the bitmap
-                        using (var graphics = Graphics.FromImage(bitmap))
-                        {
-                            // Set the text formatting
-                            var format = new StringFormat()
-                            {
-                                Alignment = StringAlignment.Near,
-                                LineAlignment = StringAlignment.Near,
-                                Trimming = StringTrimming.EllipsisCharacter,
-                                FormatFlags = StringFormatFlags.LineLimit
-                            };
+                        compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
-                            // Draw the text onto the bitmap
-                            graphics.DrawString(text, new Font("Courier New", 10), Brushes.Black, new RectangleF(0, 0, bitmap.Width, bitmap.Height), format);
-
-                            // Save the bitmap as a PNG file
-                            bitmap.Save(thumbnailPath, ImageFormat.Png);
-                        }
+                        AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                     }
-
-                    // Load the thumbnail into the ImageList and ListView
-                    AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
                 }
 
-                void AddToImageListAndListView(string imagePath, string imageName)
-                {
-                    // Load the image into the ImageList
-                    this.previewList.Images.Add(Image.FromFile(imagePath), Color.Transparent);
-
-                    // Create a ListViewItem and add it to the ListView
-                    ListViewItem item = new ListViewItem(imageName, this.previewList.Images.Count - 1);
-                    docuView.Items.Add(item);
-                }
-
-                // For each document...
                 foreach (string documentFile in documentFiles)
                 {
                     string extension = Path.GetExtension(documentFile).ToLower();
@@ -210,14 +288,28 @@ namespace dotNetDMS
                         case ".txt":
                             HandleTxt(documentFile);
                             break;
+                        case ".jpg":
+                        case ".jpeg":
+                        case ".png":
+                        case ".gif":
+                            HandleImage(documentFile);
+                            break;
                         default:
-                            //MessageBox.Show($"Document type {extension} not supported.");
+                            // Unsupported file type
                             break;
                     }
                 }
-
-                statusOut.Text = "Status: Added " + docuView.Items.Count + " items to the Document Container.";
             });
         }
+
+        void AddToImageListAndListView(string imagePath, string imageName)
+        {
+            this.previewList.Images.Add(Image.FromFile(imagePath), Color.Transparent);
+
+            ListViewItem item = new ListViewItem(imageName, this.previewList.Images.Count - 1);
+            docuView.Items.Add(item);
+        }
+
+
     }
 }
