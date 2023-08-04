@@ -36,6 +36,7 @@
             this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.statusOut = new System.Windows.Forms.ToolStripStatusLabel();
+            this.previewControl = new System.Windows.Forms.WebBrowser();
             this.menuBar.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -53,9 +54,10 @@
             this.docuView.LargeImageList = this.previewList;
             this.docuView.Location = new System.Drawing.Point(12, 36);
             this.docuView.Name = "docuView";
-            this.docuView.Size = new System.Drawing.Size(759, 904);
+            this.docuView.Size = new System.Drawing.Size(813, 904);
             this.docuView.TabIndex = 0;
             this.docuView.UseCompatibleStateImageBehavior = false;
+            this.docuView.SelectedIndexChanged += new System.EventHandler(this.docuView_SelectedIndexChanged);
             // 
             // menuBar
             // 
@@ -65,7 +67,7 @@
             this.testToolStripMenuItem});
             this.menuBar.Location = new System.Drawing.Point(0, 0);
             this.menuBar.Name = "menuBar";
-            this.menuBar.Size = new System.Drawing.Size(1578, 33);
+            this.menuBar.Size = new System.Drawing.Size(1628, 33);
             this.menuBar.TabIndex = 1;
             this.menuBar.Text = "menuStrip1";
             // 
@@ -82,7 +84,7 @@
             this.statusOut});
             this.statusStrip1.Location = new System.Drawing.Point(0, 1012);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(1578, 32);
+            this.statusStrip1.Size = new System.Drawing.Size(1628, 32);
             this.statusStrip1.TabIndex = 0;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -92,11 +94,20 @@
             this.statusOut.Size = new System.Drawing.Size(179, 25);
             this.statusOut.Text = "toolStripStatusLabel1";
             // 
+            // previewControl
+            // 
+            this.previewControl.Location = new System.Drawing.Point(869, 36);
+            this.previewControl.MinimumSize = new System.Drawing.Size(20, 20);
+            this.previewControl.Name = "previewControl";
+            this.previewControl.Size = new System.Drawing.Size(747, 967);
+            this.previewControl.TabIndex = 2;
+            // 
             // mainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1578, 1044);
+            this.ClientSize = new System.Drawing.Size(1628, 1044);
+            this.Controls.Add(this.previewControl);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.docuView);
             this.Controls.Add(this.menuBar);
@@ -123,6 +134,7 @@
         private System.Windows.Forms.ToolStripMenuItem testToolStripMenuItem;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel statusOut;
+        private System.Windows.Forms.WebBrowser previewControl;
     }
 }
 

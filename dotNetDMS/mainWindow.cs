@@ -16,6 +16,7 @@ using Spire.Xls.Charts;
 using System.Threading;
 using dotNetDMS.Class;
 using OfficeOpenXml.Drawing.Chart;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace dotNetDMS
 {
@@ -41,6 +42,12 @@ namespace dotNetDMS
                 } else
                 {
                     PopulateListView();
+
+                    if (docuView.Items.Count > 0)
+                    {
+                        docuView.Items[0].Selected = true;
+                        docuView_SelectedIndexChanged(sender, e); // Manually call the event handler to load the file preview
+                    }
                 }
             }
 
@@ -157,10 +164,10 @@ namespace dotNetDMS
                 {
                     Image compressedImage = Image.FromStream(ms);
 
-                    //compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+                        //compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
-                    AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}");
-                }
+                        AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}", documentFile);
+                    }
             }
 
             void HandlePdf(string documentFile)
@@ -177,10 +184,10 @@ namespace dotNetDMS
                 {
                     Image compressedImage = Image.FromStream(ms);
 
-                    //compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
+                        //compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
-                    AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}");
-                }
+                        AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}", documentFile);
+                    }
             }
                 /*
                 void HandleXlsx(string documentFile)
@@ -256,7 +263,7 @@ namespace dotNetDMS
 
                         //compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
-                        AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}");
+                        AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}", documentFile);
                     }
                 }
 
@@ -273,7 +280,7 @@ namespace dotNetDMS
 
                         //compressedImage.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
 
-                        AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}");
+                        AddToImageListAndListView(compressedImage, $"{Path.GetFileNameWithoutExtension(documentFile)}", documentFile);
                     }
                 }
 
@@ -309,14 +316,63 @@ namespace dotNetDMS
             });
         }
 
-        void AddToImageListAndListView(Image image, string imageName)
+        void AddToImageListAndListView(Image image, string imageName, string filePath)
         {
             this.previewList.Images.Add(image, Color.Transparent);
 
             ListViewItem item = new ListViewItem(imageName, this.previewList.Images.Count - 1);
+            item.Tag = filePath;
             docuView.Items.Add(item);
         }
 
+        private void ClearPreviewControl()
+        {
+            previewControl.Navigate("about:blank");
+            previewControl.DocumentText = string.Empty;
+        }
 
+        private void docuView_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
+            if (docuView.SelectedItems.Count > 0)
+            {
+                ListViewItem selectedItem = docuView.SelectedItems[0];
+                string filePath = selectedItem.Tag.ToString();
+                string fileExtension = Path.GetExtension(filePath);
+                Console.WriteLine(fileExtension);
+
+                if (File.Exists(filePath))
+                {
+                    statusOut.Text = "Status: Loaded from - " + filePath;
+                    // Load file preview based on file extension
+                    string absolutePath = Path.GetFullPath(filePath);
+                    Uri fileUri = new Uri(absolutePath);
+
+                    if (fileExtension == ".txt" || fileExtension == ".pdf")
+                    {
+                        previewControl.Navigate(fileUri.AbsoluteUri);
+                    }
+                    else if (fileExtension == ".jpeg" || fileExtension == ".jpg" || fileExtension == ".png" || fileExtension == ".gif")
+                    {
+                        previewControl.DocumentText = $"<html><body><img src=\"{fileUri.AbsoluteUri}\" /></body></html>";
+                    }
+                    else
+                    {
+                        // Handle unsupported file types or display an error message
+                        statusOut.Text = "Unsupported file type.";
+                    }
+                }
+                else
+                {
+                    // Handle non-existent file or display an error message
+                    statusOut.Text = "File not found.";
+                }
+            }
+            else
+            {
+                // Clear the preview control because no file is selected
+                ClearPreviewControl();
+            }
+        }
     }
 }
