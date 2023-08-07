@@ -23,8 +23,10 @@ namespace dotNetDMS
     public partial class mainWindow : Form
     {
 
-        public string documentDirectory = @"Data\Documents";
+        public static string documentDirectory = @"Data\Documents";
         public string thumbnailDirectory = @"Data\Thumbnails";
+        public string loadStatus = @"Loading: |"; //Where "|" will equal the number files loaded if the amount of files doesnt exceed 10
+        public string[] documentFiles = Directory.GetFiles(documentDirectory);
         public mainWindow()
         {
             InitializeComponent();
@@ -33,6 +35,11 @@ namespace dotNetDMS
 
         private void mainWindow_Load(object sender, EventArgs e)
         {
+            this.Width = (int)(Screen.PrimaryScreen.WorkingArea.Width / 1.3);
+            this.Height = (int)(Screen.PrimaryScreen.WorkingArea.Height / 1.3);
+            this.Left = (Screen.PrimaryScreen.WorkingArea.Width - this.Width) / 2;
+            this.Top = (Screen.PrimaryScreen.WorkingArea.Height - this.Height) / 2;
+
             using (LoginForm loginForm = new LoginForm())
             {
                 if (loginForm.ShowDialog() != DialogResult.OK)
@@ -41,7 +48,7 @@ namespace dotNetDMS
                     this.Close();
                 } else
                 {
-                    PopulateListView();
+                    Task.Run(() => PopulateListView());
 
                     if (docuView.Items.Count > 0)
                     {
@@ -52,6 +59,8 @@ namespace dotNetDMS
             }
 
         }
+
+
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -116,13 +125,10 @@ namespace dotNetDMS
         }
         private void PopulateListView()
         {
-            this.Invoke((MethodInvoker)delegate
-            {
-            string[] documentFiles = Directory.GetFiles(documentDirectory);
+            
+            this.Invoke((MethodInvoker)delegate{
 
-            statusOut.Text = "Status: PopulateListView called. Found " + documentFiles.Length + " documents.";
-
-            byte[] CompressImage(Image image)
+                byte[] CompressImage(Image image)
             {
                 using (MemoryStream ms = new MemoryStream())
                 {
@@ -137,7 +143,8 @@ namespace dotNetDMS
                 }
             }
 
-            ImageCodecInfo GetEncoderInfo(ImageFormat format)
+
+                ImageCodecInfo GetEncoderInfo(ImageFormat format)
             {
                 ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
                 foreach (ImageCodecInfo codec in codecs)
@@ -318,11 +325,13 @@ namespace dotNetDMS
 
         void AddToImageListAndListView(Image image, string imageName, string filePath)
         {
+            
             this.previewList.Images.Add(image, Color.Transparent);
 
             ListViewItem item = new ListViewItem(imageName, this.previewList.Images.Count - 1);
             item.Tag = filePath;
             docuView.Items.Add(item);
+            
         }
 
         private void ClearPreviewControl()

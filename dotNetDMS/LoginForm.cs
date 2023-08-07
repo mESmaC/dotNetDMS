@@ -53,7 +53,6 @@ namespace dotNetDMS
                 if (account.sessKey == "YWRtaW4=") {
                     if (Username.Text == account.Username && Password.Text == account.Password)
                     {
-                        MessageBox.Show("Login successful!");
                         // Redirect to the next form or do something else
                         this.DialogResult = DialogResult.OK;
                         this.Close();
