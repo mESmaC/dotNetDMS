@@ -11,7 +11,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using dotNetDMS.Class;
-    
+using System.Security.AccessControl;
+
 namespace dotNetDMS
 {
     public partial class LoginForm : Form
@@ -23,7 +24,15 @@ namespace dotNetDMS
 
         private void LoginForm_Load(object sender, EventArgs e)
         {
+            string jsonFilePath = "Data/accounts.json";
+            string jsonData = File.ReadAllText(jsonFilePath);
+            var account = JsonConvert.DeserializeObject<Account>(jsonData);
+#if DEBUG
+            Username.Text = account.Username;
+            Password.Text = account.Password;
+#else
 
+#endif
         }
 
         private void groupBox1_Enter(object sender, EventArgs e)
@@ -36,6 +45,13 @@ namespace dotNetDMS
             System.Diagnostics.Process.Start("https://github.com/mESmaC/dotNetDMS");
         }
         private void Password_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                login_Click(sender, e);
+            }
+        }
+        private void Username_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {

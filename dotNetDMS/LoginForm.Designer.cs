@@ -48,6 +48,7 @@
             this.Username.Size = new System.Drawing.Size(229, 26);
             this.Username.TabIndex = 0;
             this.Username.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.Username.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Username_KeyUp);
             // 
             // Password
             // 

@@ -342,45 +342,55 @@ namespace dotNetDMS
 
         private void docuView_SelectedIndexChanged(object sender, EventArgs e)
         {
-            
-            if (docuView.SelectedItems.Count > 0)
+            switch (docuView.SelectedIndices.Count)
             {
-                ListViewItem selectedItem = docuView.SelectedItems[0];
-                string filePath = selectedItem.Tag.ToString();
-                string fileExtension = Path.GetExtension(filePath);
-                Console.WriteLine(fileExtension);
+                case 0:
+                    // No item selected, clear the preview control
+                    ClearPreviewControl();
+                    break;
+                case 1:
+                    // Single item selected, handle accordingly
+                    int selectedIndex = docuView.SelectedIndices[0];
+                    ListViewItem selectedItem = docuView.Items[selectedIndex];
+                    string filePath = selectedItem.Tag.ToString();
+                    string fileExtension = Path.GetExtension(filePath);
 
-                if (File.Exists(filePath))
-                {
-                    statusOut.Text = "Status: Loaded from - " + filePath;
-                    // Load file preview based on file extension
-                    string absolutePath = Path.GetFullPath(filePath);
-                    Uri fileUri = new Uri(absolutePath);
+                    // Handle the selected item based on its file extension
+                    if (File.Exists(filePath))
+                    {
+                        statusOut.Text = "Status: Loaded from - " + filePath;
+                        // Load file preview based on file extension
+                        string absolutePath = Path.GetFullPath(filePath);
+                        Uri fileUri = new Uri(absolutePath);
 
-                    if (fileExtension == ".txt" || fileExtension == ".pdf")
-                    {
-                        previewControl.Navigate(fileUri.AbsoluteUri);
-                    }
-                    else if (fileExtension == ".jpeg" || fileExtension == ".jpg" || fileExtension == ".png" || fileExtension == ".gif")
-                    {
-                        previewControl.DocumentText = $"<html><body><img src=\"{fileUri.AbsoluteUri}\" /></body></html>";
+                        switch (fileExtension)
+                        {
+                            case ".txt":
+                            case ".pdf":
+                                previewControl.Navigate(fileUri.AbsoluteUri);
+                                break;
+                            case ".jpeg":
+                            case ".jpg":
+                            case ".png":
+                            case ".gif":
+                                previewControl.DocumentText = $"<html><body><img src=\"{fileUri.AbsoluteUri}\" /></body></html>";
+                                break;
+                            default:
+                                // Handle unsupported file types or display an error message
+                                statusOut.Text = "Unsupported file type.";
+                                break;
+                        }
                     }
                     else
                     {
-                        // Handle unsupported file types or display an error message
-                        statusOut.Text = "Unsupported file type.";
+                        // Handle non-existent file or display an error message
+                        statusOut.Text = "File not found.";
                     }
-                }
-                else
-                {
-                    // Handle non-existent file or display an error message
-                    statusOut.Text = "File not found.";
-                }
-            }
-            else
-            {
-                // Clear the preview control because no file is selected
-                ClearPreviewControl();
+                    break;
+                default:
+                    // Multiple items selected, do nothing
+                    statusOut.Text = "Items Selected: " + docuView.SelectedIndices.Count;
+                    break;
             }
         }
     }
