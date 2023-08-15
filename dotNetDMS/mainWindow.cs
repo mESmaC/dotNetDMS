@@ -1,36 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+﻿using dotNetDMS.Class;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Spire.Xls;
-using Spire.Pdf;
-using Spire.Doc;
-using Spire.Xls.Charts;
-using System.Threading;
-using dotNetDMS.Class;
-using OfficeOpenXml.Drawing.Chart;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace dotNetDMS
 {
     public partial class mainWindow : Form
     {
 
-        public static string documentDirectory = @"Data\Documents";
-        public string thumbnailDirectory = @"Data\Thumbnails";
-        public string loadStatus = @"Loading: |"; //Where "|" will equal the number files loaded if the amount of files doesnt exceed 10
+        public static string documentDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Documents");
+        public string thumbnailDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "Thumbnails");
         public string[] documentFiles = Directory.GetFiles(documentDirectory);
+
+        public string loadStatus = @"Loading: |"; //Where "|" will equal the number files loaded if the amount of files doesnt exceed 10
+
+        private DocumentController documentController;
+
         public mainWindow()
         {
             InitializeComponent();
+
+            // Populate documentFiles array
+            documentFiles = Directory.GetFiles(documentDirectory);
+            documentController = new DocumentController();
+            /*
+            // Debug: Print raw bytes of file paths
+            foreach (string filePath in documentFiles)
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(filePath);
+                Console.WriteLine("File Path Bytes: " + string.Join(" ", bytes));
+            }
+
+            // Debug: Print document and thumbnail paths
+            foreach (string filePath in documentFiles)
+            {
+                string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(filePath)}.png");
+                Console.WriteLine("Document Path: " + filePath);
+                Console.WriteLine("Thumbnail Path: " + thumbnailPath);
+            }
+            */
             this.FormClosing += MainForm_FormClosing;
+            
         }
 
         private void mainWindow_Load(object sender, EventArgs e)
@@ -331,6 +344,7 @@ namespace dotNetDMS
             ListViewItem item = new ListViewItem(imageName, this.previewList.Images.Count - 1);
             item.Tag = filePath;
             docuView.Items.Add(item);
+
             
         }
 
@@ -342,26 +356,39 @@ namespace dotNetDMS
 
         private void docuView_SelectedIndexChanged(object sender, EventArgs e)
         {
-            switch (docuView.SelectedIndices.Count)
-            {
-                case 0:
-                    // No item selected, clear the preview control
-                    ClearPreviewControl();
-                    break;
-                case 1:
-                    // Single item selected, handle accordingly
-                    int selectedIndex = docuView.SelectedIndices[0];
-                    ListViewItem selectedItem = docuView.Items[selectedIndex];
-                    string filePath = selectedItem.Tag.ToString();
-                    string fileExtension = Path.GetExtension(filePath);
+            ClearPreviewControl();
 
-                    // Handle the selected item based on its file extension
-                    if (File.Exists(filePath))
+            if (docuView.SelectedIndices.Count == 1)
+            {
+                int selectedIndex = docuView.SelectedIndices[0];
+                if (selectedIndex < 0 || selectedIndex >= docuView.Items.Count)
+                    return;
+
+                ListViewItem selectedItem = docuView.Items[selectedIndex];
+                string filePath = selectedItem.Tag as string;
+
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    statusOut.Text = "Invalid file path.";
+                    return;
+                }
+
+                string fileExtension = Path.GetExtension(filePath);
+
+                try
+                {
+                    if (fileExtension.Equals(".docx", StringComparison.OrdinalIgnoreCase))
                     {
-                        statusOut.Text = "Status: Loaded from - " + filePath;
-                        // Load file preview based on file extension
+                        string htmlContent = documentController.ConvertDocxToHtml(filePath);
+                        if (!string.IsNullOrEmpty(htmlContent))
+                            previewControl.DocumentText = htmlContent;
+                        else
+                            statusOut.Text = "Failed to convert .docx file to HTML.";
+                    }
+                    else
+                    {
                         string absolutePath = Path.GetFullPath(filePath);
-                        Uri fileUri = new Uri(absolutePath);
+                        Uri fileUri = new Uri("file:///" + Uri.EscapeDataString(absolutePath));
 
                         switch (fileExtension)
                         {
@@ -376,21 +403,20 @@ namespace dotNetDMS
                                 previewControl.DocumentText = $"<html><body><img src=\"{fileUri.AbsoluteUri}\" /></body></html>";
                                 break;
                             default:
-                                // Handle unsupported file types or display an error message
                                 statusOut.Text = "Unsupported file type.";
                                 break;
                         }
                     }
-                    else
-                    {
-                        // Handle non-existent file or display an error message
-                        statusOut.Text = "File not found.";
-                    }
-                    break;
-                default:
-                    // Multiple items selected, do nothing
-                    statusOut.Text = "Items Selected: " + docuView.SelectedIndices.Count;
-                    break;
+                }
+                catch (Exception ex)
+                {
+                    statusOut.Text = "An error occurred: " + ex.Message;
+                    Console.WriteLine("Exception: " + ex.ToString());
+                }
+            }
+            else if (docuView.SelectedIndices.Count > 1)
+            {
+                statusOut.Text = "Items Selected: " + docuView.SelectedIndices.Count;
             }
         }
     }
