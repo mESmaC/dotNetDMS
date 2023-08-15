@@ -1,7 +1,5 @@
 ﻿using ClosedXML.Excel;
 using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
 
 namespace dotNetDMS.Class
 {
