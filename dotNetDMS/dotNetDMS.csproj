@@ -533,6 +533,7 @@
     <Compile Include="Class\TimedMessageBox.Designer.cs">
       <DependentUpon>TimedMessageBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="Class\XlsxController.cs" />
     <Compile Include="LoginForm.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -287,9 +287,9 @@ namespace dotNetDMS
                         case ".pdf":
                             HandlePdf(documentFile);
                             break;
-                        case ".xlsx":
-                            HandleXlsx(documentFile);
-                            break;
+                        //case ".xlsx":
+                            //HandleXlsx(documentFile);
+                            //break;
                         case ".txt":
                             HandleTxt(documentFile);
                             break;
