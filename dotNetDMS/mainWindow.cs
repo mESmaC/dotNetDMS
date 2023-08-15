@@ -1,8 +1,12 @@
 ﻿using dotNetDMS.Class;
+using OfficeOpenXml;
+using OfficeOpenXml.Drawing;
+using ClosedXML.Excel;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -214,56 +218,23 @@ namespace dotNetDMS
                 {
                     string thumbnailPath = Path.Combine(thumbnailDirectory, $"{Path.GetFileNameWithoutExtension(documentFile)}.png");
 
-                    using (var package = new OfficeOpenXml.ExcelPackage(new FileInfo(documentFile)))
+                    Task.Run(() =>
                     {
-                        var worksheet = package.Workbook.Worksheets.First(); // Assuming the chart is in the first worksheet
+                        Image chartImage = XlsxController.GenerateChartThumbnail(documentFile);
 
-                        var chart = worksheet.Drawings.OfType<OfficeOpenXml.Drawing.Chart.ExcelChart>().FirstOrDefault();
-
-                        if (chart != null)
+                        if (chartImage != null)
                         {
-                            // Retrieve the image from the chart
-                            var image = GetChartImage(chart);
-
-                            if (image != null)
-                            {
-                                image.Save(thumbnailPath, System.Drawing.Imaging.ImageFormat.Png);
-                                AddToImageListAndListView(thumbnailPath, $"{Path.GetFileNameWithoutExtension(documentFile)}");
-                            }
-                            else
-                            {
-                                // Handle case when image is not found
-                            }
+                            // Save the image to a file and add it to the image list and list view
+                            chartImage.Save(thumbnailPath, ImageFormat.Png);
+                            AddToImageListAndListView(chartImage, $"{Path.GetFileNameWithoutExtension(documentFile)}", documentFile);
                         }
                         else
                         {
-                            // Handle case when chart is not found
+                            // Handle case when image is not generated
                         }
-                    }
+                    });
                 }
-                
-                Image GetChartImage(ExcelChart chart)
-                {
-                    var worksheet = chart.Worksheet;
-                    var drawings = worksheet.Drawings;
-
-                    var imagePart = drawings.FirstOrDefault()?.ImagePart;
-
-                    if (imagePart != null)
-                    {
-                        Image image;
-                        using (var stream = imagePart.GetStream())
-                        {
-                            image = Image.FromStream(stream);
-                        }
-                        return image;
-                    }
-                    else
-                    {
-                        // Handle case when image part is not found
-                        return null;
-                    }
-                }*/
+                */
 
                 void HandleTxt(string documentFile)
                 {
@@ -316,9 +287,9 @@ namespace dotNetDMS
                         case ".pdf":
                             HandlePdf(documentFile);
                             break;
-                        //case ".xlsx":
-                        //    HandleXlsx(documentFile);
-                        //    break;
+                        case ".xlsx":
+                            HandleXlsx(documentFile);
+                            break;
                         case ".txt":
                             HandleTxt(documentFile);
                             break;
